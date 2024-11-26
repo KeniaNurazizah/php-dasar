@@ -23,7 +23,7 @@ $mahasiswa = [
     ],
 ];
 // Tampilkan tabel
-echo "<table border= 1 cellpadding= 5 cellspacing= 0 width= 50%>";
+echo "<table border= 1 cellpadding= 5 cellspacing= 0>";
 echo "<tr><th>No</th><th>NIM</th><th>Nama</th></tr>";
 $no = 1;
 foreach ($mahasiswa as $mhs) {
