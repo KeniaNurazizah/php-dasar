@@ -1,4 +1,5 @@
 <?php
+session_start();
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 // Fetch study programs for combobox
@@ -16,14 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo "<script>alert('Gagal memperbarui data: {$mysqli->error}');</script>";
         }
-    } elseif (isset($_POST['delete'])) {
-        $nim = $_POST['nim'];
-
-        if ($mysqli->query("DELETE FROM students WHERE nim = '$nim'") === TRUE) {
-            echo "<script>alert('Data berhasil dihapus!'); window.location.href='?view=data';</script>";
-        } else {
-            echo "<script>alert('Gagal menghapus data: {$mysqli->error}');</script>";
-        }
     } else {
         $nim = $_POST['nim'];
         $nama = $_POST['nama'];
@@ -34,6 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             echo "<script>alert('Gagal menyimpan data: {$mysqli->error}');</script>";
         }
+    }
+    if ($insert) {
+        $_SESSION['success'] = true;
+        $_SESSION['message'] = 'Data Berhasil Ditambahkan';
+        header("Location: mahasiwa.php");
+        exit();
     }
 }
 
@@ -79,7 +78,7 @@ if (isset($_GET['edit'])) {
             border-radius: 10px; /* Rounded corners */
             box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1); /* Soft shadow for raised effect */
             font-size: 1.1rem; /* Adjust font size */
-            width: 100%
+            width: 100%;
         }
         .table th {
             background-color: #6a0dad; 
@@ -131,11 +130,8 @@ if (isset($_GET['edit'])) {
                             <td><?= $student['nama']; ?></td>
                             <td><?= $student['program']; ?></td>
                             <td>
+                                <!-- Only show Edit button -->
                                 <a href="?edit=<?= $student['nim']; ?>" class="btn btn-primary">Edit</a>
-                                <form method="POST" style="display:inline;">
-                                    <input type="hidden" name="nim" value="<?= $student['nim']; ?>">
-                                    <button type="submit" name="delete" class="btn btn-secondary" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
-                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>

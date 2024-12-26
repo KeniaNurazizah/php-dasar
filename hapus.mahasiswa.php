@@ -1,5 +1,5 @@
 <?php
-session_start();
+ session_start();
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 // Fetch study programs for combobox
@@ -7,14 +7,24 @@ $studyPrograms = $mysqli->query("SELECT id, name FROM study_program")->fetch_all
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $nim = $_POST['nim'];
-    $nama = $_POST['nama'];
-    $study_program_id = $_POST['study_program'];
+    if (isset($_POST['delete'])) {
+        $nim = $_POST['nim'];
 
-    if ($mysqli->query("INSERT INTO students (nim, nama, study_program_id) VALUES ('$nim', '$nama', '$study_program_id')")) {
-        echo "<script>alert('Data berhasil disimpan!'); window.location.href='?view=data';</script>";
+        if ($mysqli->query("DELETE FROM students WHERE nim = '$nim'") === TRUE) {
+            echo "<script>alert('Data berhasil dihapus!'); window.location.href='?view=data';</script>";
+        } else {
+            echo "<script>alert('Gagal menghapus data: {$mysqli->error}');</script>";
+        }
     } else {
-        echo "<script>alert('Gagal menyimpan data: {$mysqli->error}');</script>";
+        $nim = $_POST['nim'];
+        $nama = $_POST['nama'];
+        $study_program_id = $_POST['study_program'];
+
+        if ($mysqli->query("INSERT INTO students (nim, nama, study_program_id) VALUES ('$nim', '$nama', '$study_program_id')")) {
+            echo "<script>alert('Data berhasil disimpan!'); window.location.href='?view=data';</script>";
+        } else {
+            echo "<script>alert('Gagal menyimpan data: {$mysqli->error}');</script>";
+        }
     }
     if ($insert) {
         $_SESSION['success'] = true;
@@ -26,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Fetch all students
 $students = $mysqli->query("SELECT students.nim, students.nama, study_program.name AS program FROM students INNER JOIN study_program ON students.study_program_id = study_program.id")->fetch_all(MYSQLI_ASSOC);
-
 ?>
 
 <!DOCTYPE html>
@@ -100,6 +109,7 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
                         <th>NIM</th>
                         <th>Nama</th>
                         <th>Program Studi</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -110,6 +120,12 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
                             <td><?= $student['nim']; ?></td>
                             <td><?= $student['nama']; ?></td>
                             <td><?= $student['program']; ?></td>
+                            <td>
+                                <form method="POST" style="display:inline;">
+                                    <input type="hidden" name="nim" value="<?= $student['nim']; ?>">
+                                    <button type="submit" name="delete" class="btn btn-secondary" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
+                                </form>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                 </tbody>

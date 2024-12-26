@@ -1,4 +1,5 @@
 <?php
+session_start();
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 $result = $mysqli->query("SELECT students.nim, students.nama, study_program.name 
@@ -19,48 +20,33 @@ while ($row = $result->fetch_assoc()) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAHASISWA</title>
 
-    <!-- Bootstrap CSS (without integrity and crossorigin attributes) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS for centering the table and lavender color -->
     <style>
-        body {
-            background-color: #f3e6f7; /* Lavender background */
-        }
-        .table {
-            background-color: #fff;
-            border-radius: 8px;
-        }
-        .table th,
-        .table td {
-            text-align: center; /* Center all text by default */
-        }
-        .table td:nth-child(3) { /* Nama column */
-            text-align: left; /* Left-align Nama */
-        }
-        .table td:nth-child(1), /* # column */
-        .table td:nth-child(2), /* NIM column */
-        .table td:nth-child(4) { /* Program Studi (name) column */
-            text-align: center; /* Center-align #, NIM, and Program Studi */
-        }
-        h1 {
-            color: #5e2f89; /* Dark Lavender color for the title */
-        }
-        .table-bordered th,
-        .table-bordered td {
-            border-color: #e1c6f0; /* Lavender border */
-        }
+        body { background-color: #f3e6f7; }
+        .table { background-color: #fff; border-radius: 8px; }
+        .table th, .table td { text-align: center; }
+        .table td:nth-child(3) { text-align: left; }
+        h1 { color: #5e2f89; }
+        .table-bordered th, .table-bordered td { border-color: #e1c6f0; }
     </style>
 </head>
 <body>
     <h1 align="center">Data Mahasiswa KA 2021</h1>
     <div class="container">
+        <?php if (isset($_SESSION['success']) && $_SESSION['success'] == true ) { ?>
+            <div class="alert alert-success" role="alert">
+                <?= $_SESSION['message'] ?>
+            </div>
+        <?php } ?>
+        <a href="input.mahasiswa.php" class="btn btn-primary">Tambah</a>
         <table class="table table-bordered">
             <tr>
                 <th>#</th>
                 <th>NIM</th>
                 <th>Nama</th>
                 <th>Program Studi</th>
+                <th>Edit</th>
+                <th>Hapus</th>
             </tr>
             <?php $no = 1; ?>
             <?php foreach ($mahasiswa as $row) { ?>
@@ -69,9 +55,19 @@ while ($row = $result->fetch_assoc()) {
                     <td><?= $row['nim']; ?></td>
                     <td><?= $row['nama']; ?></td>
                     <td><?= $row['name']; ?></td>
+                    <td>
+                        <a href="edithapus.mahasiswa.php?nim=<?= $row['nim'] ?>" class="btn btn-success">Edit</a>
+                    </td>
+                    <td>
+                        <a href="hapus.mahasiswa.php?nim=<?= $row['nim'] ?>" class="btn btn-danger"
+                           onclick="return confirm('Apakah Anda Yakin Akan Menghapus Data Ini ?');">Hapus</a>
+                    </td>
                 </tr>
             <?php } ?>
         </table>
     </div>
 </body>
 </html>
+<?php 
+    session_unset(); 
+?>
