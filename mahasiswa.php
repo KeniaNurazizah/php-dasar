@@ -1,5 +1,11 @@
 <?php
 session_start();
+    if (!isset($_SESSION['login'])) {
+        if ($_SESSION['login'] != true) {
+          header("Location: login.php");
+           exit;
+    }
+}
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 $result = $mysqli->query("SELECT students.nim, students.nama, study_program.name 
@@ -69,5 +75,6 @@ while ($row = $result->fetch_assoc()) {
 </body>
 </html>
 <?php 
-    session_unset(); 
+    unset($_SESSION['success']);
+    unset($_SESSION['message']);
 ?>

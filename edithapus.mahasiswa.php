@@ -1,5 +1,11 @@
 <?php
 session_start();
+if (!isset($_SESSION['login'])) {
+    if ($_SESSION['login'] != true) {
+        header("Location: login.php");
+        exit;
+    }
+}
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 // Fetch study programs for combobox
@@ -13,9 +19,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $study_program_id = $_POST['study_program'];
 
         if ($mysqli->query("UPDATE students SET nama = '$nama', study_program_id = '$study_program_id' WHERE nim = '$nim'") === TRUE) {
-            echo "<script>alert('Data berhasil diperbarui!'); window.location.href='?view=data';</script>";
+            $_SESSION['message'] = 'Data berhasil diperbarui!';
+            $_SESSION['message_type'] = 'success';
+            header("Location: ?view=data");
+            exit();
         } else {
-            echo "<script>alert('Gagal memperbarui data: {$mysqli->error}');</script>";
+            $_SESSION['message'] = "Gagal memperbarui data: {$mysqli->error}";
+            $_SESSION['message_type'] = 'error';
+            header("Location: ?view=data");
+            exit();
         }
     } else {
         $nim = $_POST['nim'];
@@ -23,16 +35,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $study_program_id = $_POST['study_program'];
 
         if ($mysqli->query("INSERT INTO students (nim, nama, study_program_id) VALUES ('$nim', '$nama', '$study_program_id')")) {
-            echo "<script>alert('Data berhasil disimpan!'); window.location.href='?view=data';</script>";
+            $_SESSION['message'] = 'Data berhasil disimpan!';
+            $_SESSION['message_type'] = 'success';
+            header("Location: ?view=data");
+            exit();
         } else {
-            echo "<script>alert('Gagal menyimpan data: {$mysqli->error}');</script>";
+            $_SESSION['message'] = "Gagal menyimpan data: {$mysqli->error}";
+            $_SESSION['message_type'] = 'error';
+            header("Location: ?view=data");
+            exit();
         }
-    }
-    if ($insert) {
-        $_SESSION['success'] = true;
-        $_SESSION['message'] = 'Data Berhasil Ditambahkan';
-        header("Location: mahasiwa.php");
-        exit();
     }
 }
 
@@ -66,7 +78,7 @@ if (isset($_GET['edit'])) {
             max-width: 1200px;
             padding: 50px;
             margin-bottom: 400px;
-            margin: top 50px;
+            margin-top: 50px;
         }
         h1 {
             font-size: 3rem;
@@ -97,8 +109,8 @@ if (isset($_GET['edit'])) {
             border-color: #8a2be2;
         }
         .btn-secondary {
-            background-color: ##d8bfd8; 
-            border-color: ##d8bfd8;
+            background-color: #d8bfd8; 
+            border-color: #d8bfd8;
         }
         .btn-secondary:hover {
             background-color: #5a6268; /* Darker gray when hovering */
@@ -107,6 +119,15 @@ if (isset($_GET['edit'])) {
     </style>
 </head>
 <body>
+    <!-- Display success/error message from session -->
+    <?php if (isset($_SESSION['message'])): ?>
+        <div class="alert alert-<?= $_SESSION['message_type'] === 'success' ? 'success' : 'danger' ?> alert-dismissible fade show" role="alert">
+            <?= $_SESSION['message'] ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+    <?php endif; ?>
+
     <?php if (isset($_GET['view']) && $_GET['view'] === 'data'): ?>
         <div class="container">
             <h1>Data Mahasiswa</h1>
@@ -130,7 +151,6 @@ if (isset($_GET['edit'])) {
                             <td><?= $student['nama']; ?></td>
                             <td><?= $student['program']; ?></td>
                             <td>
-                                <!-- Only show Edit button -->
                                 <a href="?edit=<?= $student['nim']; ?>" class="btn btn-primary">Edit</a>
                             </td>
                         </tr>

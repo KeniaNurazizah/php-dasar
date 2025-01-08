@@ -1,5 +1,11 @@
 <?php
- session_start();
+session_start();
+if (!isset($_SESSION['login'])) {
+    if ($_SESSION['login'] != true) {
+        header("Location: login.php");
+        exit;
+    }
+}
 $mysqli = new mysqli('localhost', 'root', '', 'tedc');
 
 // Fetch study programs for combobox
@@ -11,9 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $nim = $_POST['nim'];
 
         if ($mysqli->query("DELETE FROM students WHERE nim = '$nim'") === TRUE) {
-            echo "<script>alert('Data berhasil dihapus!'); window.location.href='?view=data';</script>";
+            $_SESSION['message'] = 'Data berhasil dihapus!';
+            $_SESSION['message_type'] = 'success';
         } else {
-            echo "<script>alert('Gagal menghapus data: {$mysqli->error}');</script>";
+            $_SESSION['message'] = "Gagal menghapus data: {$mysqli->error}";
+            $_SESSION['message_type'] = 'error';
         }
     } else {
         $nim = $_POST['nim'];
@@ -21,17 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $study_program_id = $_POST['study_program'];
 
         if ($mysqli->query("INSERT INTO students (nim, nama, study_program_id) VALUES ('$nim', '$nama', '$study_program_id')")) {
-            echo "<script>alert('Data berhasil disimpan!'); window.location.href='?view=data';</script>";
+            $_SESSION['message'] = 'Data berhasil disimpan!';
+            $_SESSION['message_type'] = 'success';
         } else {
-            echo "<script>alert('Gagal menyimpan data: {$mysqli->error}');</script>";
+            $_SESSION['message'] = "Gagal menyimpan data: {$mysqli->error}";
+            $_SESSION['message_type'] = 'error';
         }
     }
-    if ($insert) {
-        $_SESSION['success'] = true;
-        $_SESSION['message'] = 'Data Berhasil Ditambahkan';
-        header("Location: mahasiwa.php");
-        exit();
-    }
+
+    // Redirect to avoid re-submission on refresh
+    header("Location: ?view=data");
+    exit();
 }
 
 // Fetch all students
@@ -57,7 +65,7 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
             max-width: 1200px;
             padding: 50px;
             margin-bottom: 400px;
-            margin: top 50px;
+            margin-top: 50px;
         }
         h1 {
             font-size: 3rem;
@@ -88,8 +96,8 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
             border-color: #8a2be2;
         }
         .btn-secondary {
-            background-color: ##d8bfd8; 
-            border-color: ##d8bfd8;
+            background-color: #d8bfd8; 
+            border-color: #d8bfd8;
         }
         .btn-secondary:hover {
             background-color: #5a6268; /* Darker gray when hovering */
@@ -98,8 +106,17 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
     </style>
 </head>
 <body>
-    <?php if (isset($_GET['view']) && $_GET['view'] === 'data'): ?>
-        <div class="container">
+    <div class="container">
+        <!-- Display success/error message from session -->
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert alert-<?= $_SESSION['message_type'] === 'success' ? 'success' : 'danger' ?> alert-dismissible fade show" role="alert">
+                <?= $_SESSION['message'] ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            <?php unset($_SESSION['message']); unset($_SESSION['message_type']); ?>
+        <?php endif; ?>
+
+        <?php if (isset($_GET['view']) && $_GET['view'] === 'data'): ?>
             <h1>Data Mahasiswa</h1>
             <a href="?" class="btn btn-primary mb-3">Input Data</a> <!-- Move button to the top -->
             <table class="table table-bordered">
@@ -130,9 +147,7 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
                     <?php endforeach; ?>
                 </tbody>
             </table>
-        </div>
-    <?php else: ?>
-        <div class="container">
+        <?php else: ?>
             <h1>Form Input Data Mahasiswa</h1>
             <form method="POST">
                 <div class="mb-3">
@@ -157,8 +172,8 @@ $students = $mysqli->query("SELECT students.nim, students.nama, study_program.na
             <div class="text-center mt-3">
                 <a href="?view=data" class="btn btn-secondary">Lihat Data</a>
             </div>
-        </div>
-    <?php endif; ?>
+        <?php endif; ?>
+    </div>
 
     <!-- Bootstrap JS and Popper.js -->
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
